@@ -1,15 +1,19 @@
 "use client";
 import React, { useState } from 'react';
-import { Sparkles, Utensils, RotateCw, ChefHat, BookOpen, ScrollText } from 'lucide-react';
+import { Sparkles, Utensils, RotateCw, ChefHat, BookOpen, ScrollText, Camera } from 'lucide-react';
 import { recipes } from './data/recipes';
 
 export default function ChickenGacha() {
   const [result, setResult] = useState<any>(null);
   const [isSpinning, setIsSpinning] = useState(false);
+  // 画像が存在するかどうかのチェック用
+  const [imageExists, setImageExists] = useState(true);
 
   const spinGacha = () => {
     setIsSpinning(true);
     setResult(null);
+    // ガチャを回すたびに、一旦「画像はある」という前提にリセット
+    setImageExists(true);
 
     setTimeout(() => {
       const randomIndex = Math.floor(Math.random() * recipes.length);
@@ -64,24 +68,45 @@ export default function ChickenGacha() {
                     {result.name}
                   </h2>
                   
-                  <div className="flex justify-center gap-4 text-sm text-stone-500">
+                  <div className="flex justify-center gap-4 text-sm text-stone-500 mb-4">
                      <span>部位: {result.part}</span>
                      <span>/</span>
                      <span>P.{result.page}</span>
                   </div>
+
+                  {/* ★★★ 画像表示エリア ★★★ */}
+                  <div className="relative w-full h-56 mb-6 rounded-xl overflow-hidden shadow-md bg-orange-50 flex items-center justify-center group">
+                    <img 
+                      src={`/images/${result.id}.jpg`} 
+                      alt={result.name}
+                      className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 ${imageExists ? 'opacity-100' : 'opacity-0'}`}
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                        setImageExists(false);
+                      }}
+                      onLoad={() => setImageExists(true)}
+                    />
+                    {/* 画像がない時に表示されるアイコン */}
+                    {!imageExists && (
+                        <div className="absolute inset-0 flex flex-col items-center justify-center text-stone-300">
+                            <Camera size={40} className="mb-2 opacity-50"/>
+                            <span className="text-xs">No Image</span>
+                        </div>
+                    )}
+                  </div>
+
                 </div>
 
                 {/* 詳細エリア */}
                 <div className="bg-white/50 rounded-xl p-5 border border-white/60 space-y-6 max-h-[400px] overflow-y-auto shadow-inner">
                   
-                  {/* ★ここを改良：材料リスト★ */}
+                  {/* 材料リスト（見やすく整形済み） */}
                   {result.materials && (
                     <div>
                       <h3 className="font-bold text-orange-800 flex items-center gap-2 mb-3 text-sm border-b-2 border-orange-100 pb-1">
                         <ChefHat size={18}/> 材料
                       </h3>
                       <ul className="space-y-2">
-                        {/* 「、」で区切ってリストにする魔法のコード */}
                         {result.materials.split('、').map((item: string, i: number) => (
                           <li key={i} className="flex items-start gap-2 text-sm text-stone-700 bg-white/60 p-2 rounded-lg">
                             <span className="text-orange-400 font-bold shrink-0 mt-[1px]">・</span>
@@ -126,7 +151,7 @@ export default function ChickenGacha() {
                     <ChefHat size={32} className="text-stone-300" />
                  </div>
                 <p className="text-sm font-medium">
-                  今日は何を作ろう？<br/>ボタンを押して40品から選ぶ
+                  今日は何を作ろう？<br/>ボタンを押して35品から選ぶ
                 </p>
               </div>
             )}
