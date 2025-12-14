@@ -4,7 +4,8 @@ import { Sparkles, Utensils, RotateCw, ChefHat, BookOpen } from 'lucide-react';
 import { recipes } from './data/recipes';
 
 export default function ChickenGacha() {
-  const [result, setResult] = useState(null);
+  // <any> を付け足すことで「どんなデータが入っても文句言うな」という命令になります
+const [result, setResult] = useState<any>(null);
   const [isSpinning, setIsSpinning] = useState(false);
 
   const spinGacha = () => {
