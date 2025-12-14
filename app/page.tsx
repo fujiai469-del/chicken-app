@@ -1,11 +1,10 @@
 "use client";
 import React, { useState } from 'react';
-import { Sparkles, Utensils, RotateCw, ChefHat, BookOpen } from 'lucide-react';
+import { Sparkles, Utensils, RotateCw, ChefHat, BookOpen, ScrollText } from 'lucide-react';
 import { recipes } from './data/recipes';
 
 export default function ChickenGacha() {
-  // <any> を付け足すことで「どんなデータが入っても文句言うな」という命令になります
-const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<any>(null);
   const [isSpinning, setIsSpinning] = useState(false);
 
   const spinGacha = () => {
@@ -14,22 +13,23 @@ const [result, setResult] = useState<any>(null);
 
     setTimeout(() => {
       const randomIndex = Math.floor(Math.random() * recipes.length);
-      setResult(recipes[randomIndex]);
+      // 安全策：データがない場合は1番目を表示
+      const selectedRecipe = recipes[randomIndex] || recipes[0];
+      setResult(selectedRecipe);
       setIsSpinning(false);
     }, 600);
   };
 
   return (
-    // 背景：目に優しいクリーム〜ベージュ系のグラデーション
     <div className="min-h-screen bg-[#fdfbf7] relative overflow-hidden flex flex-col items-center justify-center p-4">
       
-      {/* 背景の装飾（ふわっとした光の玉）- 透け感を出すために配置 */}
+      {/* 背景装飾 */}
       <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-orange-200/30 rounded-full blur-3xl pointer-events-none"></div>
       <div className="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] bg-yellow-200/30 rounded-full blur-3xl pointer-events-none"></div>
 
       <div className="max-w-md w-full relative z-10">
         
-        {/* タイトル部分 */}
+        {/* タイトル */}
         <div className="text-center mb-6">
           <h1 className="text-3xl font-bold text-stone-700 tracking-widest flex items-center justify-center gap-2">
             <Utensils className="text-orange-400" />
@@ -38,10 +38,9 @@ const [result, setResult] = useState<any>(null);
           <p className="text-stone-400 text-xs mt-2 tracking-wider">TODAY'S CHICKEN RECIPE</p>
         </div>
 
-        {/* メインカード：ここを透けさせる（Glassmorphism） */}
+        {/* メインカード */}
         <div className="bg-white/60 backdrop-blur-md rounded-3xl shadow-xl overflow-hidden border border-white/60">
           
-          {/* ガチャ表示エリア */}
           <div className="p-8 text-center min-h-[340px] flex flex-col items-center justify-center">
             {isSpinning ? (
               <div className="flex flex-col items-center animate-pulse">
@@ -49,38 +48,77 @@ const [result, setResult] = useState<any>(null);
                 <p className="text-stone-500 text-sm">メニューを考え中...</p>
               </div>
             ) : result ? (
-              <div className="animate-in fade-in duration-700 w-full">
+              <div className="animate-in fade-in duration-700 w-full text-left">
                 
-                {/* タグ */}
-                <div className="flex flex-wrap justify-center gap-2 mb-5">
-                  {result.tags.map((tag, i) => (
-                    <span key={i} className="px-3 py-1 bg-white/80 border border-orange-100 text-stone-600 rounded-full text-xs font-medium shadow-sm">
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-
-                {/* 料理名 */}
-                <h2 className="text-2xl font-bold text-stone-800 mb-6 leading-relaxed">
-                  {result.name}
-                </h2>
-
-                {/* 情報エリア */}
-                <div className="grid grid-cols-2 gap-4 mb-6 w-full max-w-[260px] mx-auto">
-                  <div className="bg-white/50 p-3 rounded-xl border border-white flex flex-col items-center">
-                    <span className="text-[10px] text-stone-400 uppercase tracking-widest mb-1">PART</span>
-                    <span className="text-base font-bold text-stone-600">{result.part}</span>
+                {/* ヘッダー情報 */}
+                <div className="text-center mb-6">
+                  <div className="flex flex-wrap justify-center gap-2 mb-3">
+                    {result.tags?.map((tag: string, i: number) => (
+                      <span key={i} className="px-3 py-1 bg-white/80 border border-orange-100 text-stone-600 rounded-full text-xs font-medium shadow-sm">
+                        {tag}
+                      </span>
+                    ))}
                   </div>
-                  <div className="bg-white/50 p-3 rounded-xl border border-white flex flex-col items-center">
-                    <span className="text-[10px] text-stone-400 uppercase tracking-widest mb-1">PAGE</span>
-                    <span className="text-base font-bold text-stone-600">P.{result.page}</span>
+
+                  <h2 className="text-2xl font-bold text-stone-800 mb-2 leading-relaxed">
+                    {result.name}
+                  </h2>
+                  
+                  <div className="flex justify-center gap-4 text-sm text-stone-500">
+                     <span>部位: {result.part}</span>
+                     <span>/</span>
+                     <span>P.{result.page}</span>
                   </div>
                 </div>
 
-                <div className="flex items-center justify-center gap-2 text-stone-400 text-xs">
-                   <BookOpen size={14} />
-                   <span>本を開いて作ってみましょう</span>
+                {/* 詳細エリア */}
+                <div className="bg-white/50 rounded-xl p-5 border border-white/60 space-y-6 max-h-[400px] overflow-y-auto shadow-inner">
+                  
+                  {/* ★ここを改良：材料リスト★ */}
+                  {result.materials && (
+                    <div>
+                      <h3 className="font-bold text-orange-800 flex items-center gap-2 mb-3 text-sm border-b-2 border-orange-100 pb-1">
+                        <ChefHat size={18}/> 材料
+                      </h3>
+                      <ul className="space-y-2">
+                        {/* 「、」で区切ってリストにする魔法のコード */}
+                        {result.materials.split('、').map((item: string, i: number) => (
+                          <li key={i} className="flex items-start gap-2 text-sm text-stone-700 bg-white/60 p-2 rounded-lg">
+                            <span className="text-orange-400 font-bold shrink-0 mt-[1px]">・</span>
+                            <span>{item}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {/* 作り方 */}
+                  {result.steps && (
+                    <div>
+                      <h3 className="font-bold text-orange-800 flex items-center gap-2 mb-3 text-sm border-b-2 border-orange-100 pb-1">
+                        <ScrollText size={18}/> 作り方
+                      </h3>
+                      <div className="space-y-4">
+                        {result.steps.map((step: string, index: number) => (
+                          <div key={index} className="flex gap-3 text-sm text-stone-700">
+                            <div className="flex-shrink-0 w-6 h-6 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center font-bold text-xs">
+                              {index + 1}
+                            </div>
+                            <p className="leading-relaxed pt-[2px]">{step}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {!result.materials && (
+                     <div className="text-center py-4 text-stone-400 text-xs">
+                        <BookOpen className="mx-auto mb-2" size={20}/>
+                        <p>詳しい作り方は本を見てね！</p>
+                     </div>
+                  )}
                 </div>
+
               </div>
             ) : (
               <div className="text-stone-400 flex flex-col items-center gap-3">
@@ -88,13 +126,12 @@ const [result, setResult] = useState<any>(null);
                     <ChefHat size={32} className="text-stone-300" />
                  </div>
                 <p className="text-sm font-medium">
-                  毎日の献立、<br/>迷ったらガチャにおまかせ。
+                  今日は何を作ろう？<br/>ボタンを押して40品から選ぶ
                 </p>
               </div>
             )}
           </div>
 
-          {/* ボタンエリア */}
           <div className="p-6 bg-white/40 border-t border-white/40">
             <button
               onClick={spinGacha}
