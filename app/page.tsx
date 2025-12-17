@@ -1,12 +1,29 @@
 "use client";
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react'; // ★ useEffect を追加
 import { Sparkles, Utensils, RotateCw, ChefHat, BookOpen, ScrollText, Camera } from 'lucide-react';
 import { recipes } from './data/recipes';
 
 export default function ChickenGacha() {
+  // ▼▼▼ ここから追加・変更 ▼▼▼
+  
+  // 1. スマホのエラーを防ぐためのスイッチを作る
+  const [isClient, setIsClient] = useState(false);
+
+  // 2. 画面が読み込まれたらスイッチをオンにする
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  // 既存のステートたち（そのまま残す）
   const [result, setResult] = useState<any>(null);
   const [isSpinning, setIsSpinning] = useState(false);
   const [imageExists, setImageExists] = useState(true);
+
+  // 3. 準備ができるまでは画面を表示しない（これでエラーが消える！）
+  if (!isClient) {
+    return <div className="min-h-screen bg-[#fdfbf7] p-4 text-center">読み込み中...</div>;
+  }
 
   const spinGacha = () => {
     setIsSpinning(true);
